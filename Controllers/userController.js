@@ -7,7 +7,7 @@ const userController = {
     signup: async (req, res) => {      
         const { name, email, password } = req.body;
         try {
-            const user = await User.findOne({ name, email })
+            const user = await User.findOne({ email })
             if (user) {
                 res.status(201).send({message:"Existing User , please login"})
             }    
