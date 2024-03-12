@@ -5,6 +5,9 @@ const { MongoDB_URL, PORT } = require("./utils");
 const userRouter = require("./Routes/userRoute");
 const { Server } = require("socket.io");
 const http = require("http");
+const Chat = require("./Models/Message");
+const messageRouter = require("./Routes/messageRoute");
+const Message = require("./Models/Message");
 
 const app = express();
 const server = http.createServer(app);
@@ -31,20 +34,32 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-    console.log(`User Connected: ${socket.id}`);
+  console.log("New client connected");
 
-    socket.on("join_room", (data) => {
-      socket.join(data);
-      console.log(`User with ID: ${socket.id} joined room: ${data}`);
-    });
+  socket.on("join", (userId) => {
+    socket.join(userId);
+    console.log(`User ${userId} joined room ${userId}`);
+  });
 
-    socket.on("send_message", (data) => {
-      socket.to(data.room).emit("receive_message", data);
-    });
+  socket.on("sendMessage", async ({ sender, receiver, message }) => {
+    try {
+      const messages = {
+        sender,
+        receiver,
+        message,
+        createdAt: new Date(),
+      };
+      let msg=new Message(messages);
+      await msg.save();
+      io.to(receiver).emit("message", messages);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  });
 
-    socket.on("disconnect", () => {
-      console.log("User Disconnected", socket.id);
-    });
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+  });
 });
-
 app.use("/", userRouter);
+app.use('/msg', messageRouter);
