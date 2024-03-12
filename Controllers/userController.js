@@ -2,6 +2,7 @@ const User = require("../Models/user");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require("../utils");
+const nodemailer = require("nodemailer");
 
 const userController = {
   signup: async (req, res) => {
@@ -11,11 +12,11 @@ const userController = {
       if (user) {
         res.status(201).send({ message: "Existing User , please login" });
       } else {
-        const passWordHash = await bcrypt.hash(password, 10);
+        const passwordHash = await bcrypt.hash(password, 10);
         const newUser = new User({
           name,
           email,
-          passWordHash,
+          passwordHash,
         });
         await newUser.save();
         res.status(200).send({ message: "SignUp success", newUser });
@@ -28,11 +29,12 @@ const userController = {
   signin: async (req, res) => {
     try {
       const { email, password } = req.body;
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ email, activated: true });
+      console.log(user);
       if (!user) {
         res.send({ message: "No Users found" });
       } else {
-        const passCheck = await bcrypt.compare(password, user.passWordHash);
+        const passCheck = await bcrypt.compare(password, user.passwordHash);
         if (!passCheck) {
           res.send({ message: "Password is wrong" });
         }
