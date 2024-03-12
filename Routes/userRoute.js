@@ -4,7 +4,7 @@ const userRouter = require('express').Router();
 
 userRouter.post("/", userController.signup);
 userRouter.post('/login', userController.signin);
-userRouter.get('/users', userController.allUsers);
+userRouter.get('/users/:userId', userController.allUsers);
 userRouter.post("/reset-password", userController.resetPassword);
 userRouter.post("/new-password", userController.newPassword);
 userRouter.post("/link/:email", userController.activationLink);

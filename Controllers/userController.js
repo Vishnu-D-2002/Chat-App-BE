@@ -29,11 +29,9 @@ const userController = {
   signin: async (req, res) => {
     try {
       const { email, password } = req.body;
-      const user = await User.findOne({ email, activated: true });
+      const user = await User.findOne({ email });
       console.log(user);
-      if (!user) {
-        res.send({ message: "No Users found" });
-      } else {
+      if (user) {
         const passCheck = await bcrypt.compare(password, user.passwordHash);
         if (!passCheck) {
           res.send({ message: "Password is wrong" });
@@ -44,16 +42,19 @@ const userController = {
             id: user._id,
           },
           JWT_SECRET
-        );
-        res.status(200).send({ message: "Signin sucess", token,user });
+          );
+          res.status(200).send({ message: "Signin sucess", token,user });
+        } else {
+        res.send({ message: "No Users found" });
       }
     } catch (e) {
       res.status(500).send({ message: "signin error", e });
     }
   },
   allUsers: async (req, res) => {
+    const { userId } = req.params;
     try {
-      const users = await User.find();
+      const users = await User.find({_id:{$ne:userId}});
       res.status(200).send({ users });
     } catch (e) {
       res.status(500).send({ message: "signin error", e });
