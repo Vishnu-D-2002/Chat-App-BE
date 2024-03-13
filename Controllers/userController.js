@@ -8,10 +8,8 @@ const userController = {
   signup: async (req, res) => {
     const { name, email, password } = req.body;
     try {
-      const user = await User.findOne({ email });
-      if (user) {
-        return res.status(201).send({ message: "Existing Email Id , please login" });
-      } else {
+      const user = await User.findOne({ name, email });
+      if (!user) {
         const passwordHash = await bcrypt.hash(password, 10);
         const newUser = new User({
           name,
@@ -19,13 +17,16 @@ const userController = {
           passwordHash,
         });
         await newUser.save();
-        res
+        return res
           .status(200)
           .send({
             message: "Activation Mail Sent Successfull to your Mail",
             newUser,
           });
       }
+      else {
+        return res.status(201).send({ message: "Existing Email Id , please login" });
+      } 
     } catch (e) {
       res.status(500).send({ message: "signup Error", e });
       console.log("error", e);
