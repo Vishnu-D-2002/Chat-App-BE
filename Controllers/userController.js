@@ -10,7 +10,7 @@ const userController = {
     try {
       const user = await User.findOne({ email });
       if (user) {
-        res.status(201).send({ message: "Existing User , please login" });
+        res.status(201).send({ message: "Existing EmailId , please login" });
       } else {
         const passwordHash = await bcrypt.hash(password, 10);
         const newUser = new User({
@@ -19,7 +19,12 @@ const userController = {
           passwordHash,
         });
         await newUser.save();
-        res.status(200).send({ message: "SignUp success", newUser });
+        res
+          .status(200)
+          .send({
+            message: "Activation Mail Sent Successfull to your Mail",
+            newUser,
+          });
       }
     } catch (e) {
       res.status(500).send({ message: "signup Error", e });
