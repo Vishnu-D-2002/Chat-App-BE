@@ -63,3 +63,22 @@ io.on("connection", (socket) => {
 });
 app.use("/", userRouter);
 app.use('/msg', messageRouter);
+app.get('/users/with-messages/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Find messages where the logged-in user is the receiver
+    const messages = await Message.find({ receiver: userId }).select('sender');
+
+    // Extract sender IDs from the messages
+    const senderIds = messages.map((message) => message.sender);
+
+    // Find users based on the sender IDs
+    const usersWithMessages = await User.find({ _id: { $in: senderIds } });
+
+    res.json({ usersWithMessages });
+  } catch (error) {
+    console.error('Error fetching users with messages:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
