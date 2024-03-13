@@ -28,7 +28,7 @@ mongoose.connect(MongoDB_URL).then(() => {
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "https://chat-in-app.netlify.app/"],
+    origin: ["http://localhost:5173", "https://chat-in-app.netlify.app"],
     methods: ["GET", "POST"],
   },
 });
