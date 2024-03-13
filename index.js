@@ -8,6 +8,7 @@ const http = require("http");
 const Chat = require("./Models/Message");
 const messageRouter = require("./Routes/messageRoute");
 const Message = require("./Models/Message");
+const User = require("./Models/user");
 
 const app = express();
 const server = http.createServer(app);
