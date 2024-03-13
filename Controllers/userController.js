@@ -10,7 +10,7 @@ const userController = {
     try {
       const user = await User.findOne({ email });
       if (user) {
-        res.status(201).send({ message: "Existing EmailId , please login" });
+        res.status(201).send({ message: "Existing Email Id , please login" });
       } else {
         const passwordHash = await bcrypt.hash(password, 10);
         const newUser = new User({
