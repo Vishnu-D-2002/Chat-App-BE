@@ -29,12 +29,12 @@ const userController = {
   signin: async (req, res) => {
     try {
       const { email, password } = req.body;
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ email,activated:true });
       console.log(user);
       if (user) {
         const passCheck = await bcrypt.compare(password, user.passwordHash);
         if (!passCheck) {
-          res.send({ message: "Password is wrong" });
+          return res.send({ message: "Password is wrong" });
         }
         let token = await jwt.sign(
           {
