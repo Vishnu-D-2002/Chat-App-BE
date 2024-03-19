@@ -5,7 +5,6 @@ const { MongoDB_URL, PORT } = require("./utils");
 const userRouter = require("./Routes/userRoute");
 const { Server } = require("socket.io");
 const http = require("http");
-const Chat = require("./Models/Message");
 const messageRouter = require("./Routes/messageRoute");
 const Message = require("./Models/Message");
 const User = require("./Models/user");

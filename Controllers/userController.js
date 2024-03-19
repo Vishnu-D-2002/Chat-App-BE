@@ -1,8 +1,9 @@
 const User = require("../Models/user");
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../utils");
 const nodemailer = require("nodemailer");
+const cloudinary = require("../utils/cloudinary");
 
 const userController = {
   signup: async (req, res) => {
@@ -11,22 +12,25 @@ const userController = {
       const user = await User.findOne({ name, email });
       if (!user) {
         const passwordHash = await bcrypt.hash(password, 10);
+        const result = await cloudinary.uploader.upload(req.file.path);
+        console.log(result);
         const newUser = new User({
           name,
           email,
           passwordHash,
+          image: result.secure_url,
+          cloud_id:result.public_id,
         });
         await newUser.save();
+        return res.status(200).send({
+          message: "Activation Mail Sent Successfull to your Mail",
+          newUser,
+        });
+      } else {
         return res
-          .status(200)
-          .send({
-            message: "Activation Mail Sent Successfull to your Mail",
-            newUser,
-          });
+          .status(201)
+          .send({ message: "Existing Email Id , please login" });
       }
-      else {
-        return res.status(201).send({ message: "Existing Email Id , please login" });
-      } 
     } catch (e) {
       res.status(500).send({ message: "signup Error", e });
       console.log("error", e);
@@ -35,7 +39,7 @@ const userController = {
   signin: async (req, res) => {
     try {
       const { email, password } = req.body;
-      const user = await User.findOne({ email,activated:true });
+      const user = await User.findOne({ email, activated: true });
       console.log(user);
       if (user) {
         const passCheck = await bcrypt.compare(password, user.passwordHash);
@@ -48,9 +52,9 @@ const userController = {
             id: user._id,
           },
           JWT_SECRET
-          );
-          res.status(200).send({ message: "Signin sucess", token,user });
-        } else {
+        );
+        res.status(200).send({ message: "Signin sucess", token, user });
+      } else {
         res.send({ message: "No Users found" });
       }
     } catch (e) {
@@ -60,7 +64,7 @@ const userController = {
   allUsers: async (req, res) => {
     const { userId } = req.params;
     try {
-      const users = await User.find({_id:{$ne:userId}});
+      const users = await User.find({ _id: { $ne: userId } });
       res.status(200).send({ users });
     } catch (e) {
       res.status(500).send({ message: "signin error", e });
