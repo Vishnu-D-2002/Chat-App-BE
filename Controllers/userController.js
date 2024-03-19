@@ -11,29 +11,35 @@ const userController = {
     try {
       const user = await User.findOne({ name, email });
       if (!user) {
+        let image = "https://i.postimg.cc/h4QgJzJm/profile.jpg";
+        let cloud_id = null; 
+        if (req.file) {
+          const result = await cloudinary.uploader.upload(req.file.path);
+          console.log(result);
+          image = result.secure_url;
+          cloud_id = result.public_id;
+        }
         const passwordHash = await bcrypt.hash(password, 10);
-        const result = await cloudinary.uploader.upload(req.file.path);
-        console.log(result);
         const newUser = new User({
           name,
           email,
           passwordHash,
-          image: result.secure_url,
-          cloud_id:result.public_id,
+          image,
+          cloud_id,
         });
         await newUser.save();
         return res.status(200).send({
-          message: "Activation Mail Sent Successfull to your Mail",
+          message: "Activation Mail Sent Successfully to your Mail",
           newUser,
         });
       } else {
         return res
-          .status(201)
-          .send({ message: "Existing Email Id , please login" });
+          .status(409)
+          .send({ message: "Existing Email Id, please login" });
       }
     } catch (e) {
-      res.status(500).send({ message: "signup Error", e });
-      console.log("error", e);
+      console.error("Error in signup:", e);
+      res.status(500).send({ message: "Signup Error", error: e.message });
     }
   },
   signin: async (req, res) => {
