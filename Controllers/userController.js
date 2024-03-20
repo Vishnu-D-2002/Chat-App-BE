@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../utils");
 const nodemailer = require("nodemailer");
 const cloudinary = require("../utils/cloudinary");
+require('events').EventEmitter.defaultMaxListeners = 15; 
 
 const userController = {
   signup: async (req, res) => {
@@ -12,7 +13,7 @@ const userController = {
       const user = await User.findOne({ name, email });
       if (!user) {
         let image = "https://i.postimg.cc/h4QgJzJm/profile.jpg";
-        let cloud_id = null; 
+        let cloud_id = null;
         if (req.file) {
           const result = await cloudinary.uploader.upload(req.file.path);
           console.log(result);
@@ -212,6 +213,45 @@ const userController = {
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Internal Server Error", error });
+    }
+  },
+  oneUser: async (req, res) => {
+    // const { userId } = req.params;
+    try {
+      const user = await User.findById(req.params.userId);
+      res.status(200).send({ user });
+    } catch (e) {
+      res.status(500).send({ message: "signin error", e });
+    }
+  },
+  updateUser: async (req, res) => {
+    const { userId } = req.params;
+    try {
+      const user = await User.findById(req.params.userId);
+      if (!user) {
+        return res.status(404).send({ message: "User not found" });
+      }
+
+      await cloudinary.uploader.destroy(user.cloud_id);
+      let result;
+      if (req.file) {
+        result = await cloudinary.uploader.upload(req.file.path);
+      }
+      const data = {
+        name: req.body.name,
+        email: req.body.email,
+        image: result ? result.secure_url : user.image,
+        cloud_id: result ? result.public_id : user.cloud_id,
+      };
+      const updatedUser = await User.findByIdAndUpdate({ _id: userId }, data, {
+        new: true,
+      });
+      if (!updatedUser) {
+        return res.status(404).send({ message: "Failed to update user" });
+      }
+      return res.status(200).send({ user: updatedUser });
+    } catch (e) {
+      return res.status(500).send({ message: "Update error", error: e });
     }
   },
 };
